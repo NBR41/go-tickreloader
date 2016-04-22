@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -31,7 +32,18 @@ func main() {
 			fmt.Println("!!!!! reload !!!!")
 			return []string{"lala", "lolo"}, nil
 		},
-		&i, 3,
+	)
+
+	cli.StartTickReload()
+	test(cli)
+	cli.StopTickReload()
+
+	cli = tickreloader.NewClient(
+		1*time.Second,
+		func(v ...interface{}) (interface{}, error) {
+			fmt.Println("!!!!! reload !!!!")
+			return nil, errors.New("reload error")
+		},
 	)
 
 	cli.StartTickReload()
@@ -42,7 +54,7 @@ func main() {
 func test(cli *tickreloader.Client) {
 	var ch = make(chan bool)
 	for j := 0; j < 10; j++ {
-		go func(cli *Client, j int, ch chan bool) {
+		go func(cli *tickreloader.Client, j int, ch chan bool) {
 			for k := 0; k < 10; k++ {
 				v, err := cli.Get()
 				fmt.Println("j", j, "k", k, "Get", v, err)
