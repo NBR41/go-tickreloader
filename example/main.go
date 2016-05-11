@@ -14,7 +14,7 @@ func main() {
 	var cli = tickreloader.NewClient(
 		3*time.Second,
 		func(v ...interface{}) (interface{}, error) {
-			fmt.Println("!!!!! reload !!!!")
+			fmt.Println("reload")
 			var value = v[0].(*int)
 			*value = *value + v[1].(int)
 			return *value, nil
@@ -29,8 +29,8 @@ func main() {
 	cli = tickreloader.NewClient(
 		1*time.Second,
 		func(v ...interface{}) (interface{}, error) {
-			fmt.Println("!!!!! reload !!!!")
-			return []string{"lala", "lolo"}, nil
+			fmt.Println("reload")
+			return []string{"foo", "bar"}, nil
 		},
 	)
 
