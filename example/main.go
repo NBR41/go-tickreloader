@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NBR41/tickreloader"
+	"github.com/NBR41/gotickreloader"
 )
 
 func main() {

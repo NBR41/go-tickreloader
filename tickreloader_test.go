@@ -1,4 +1,4 @@
-package tickreloader
+package gotickreloader
 
 import (
 	"errors"
