@@ -3,6 +3,7 @@ package gotickreloader
 import (
 	"errors"
 	"runtime"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -51,25 +52,30 @@ func TestGetterOnError(t *testing.T) {
 func TestTickReload(t *testing.T) {
 
 	var experr = errors.New("test")
-	var param = 0
+	var param uint64
 	var fGetter = func(v ...interface{}) (interface{}, error) {
-		p, ok := v[0].(*int)
+		var i uint64
+		p, ok := v[0].(*uint64)
 		if ok {
-			*p++
+			i = atomic.AddUint64(p, 1)
 		}
-		if *p == 3 {
+		if i == 3 {
 			return nil, experr
 		}
-		return *p, nil
+		return i, nil
 	}
 	var tr = NewClient(5*time.Millisecond, fGetter, &param)
 	tr.StartTickReload()
 	var v interface{}
+	var cur uint64
 	var err error
 	for {
+
 		v, err = tr.Get()
-		t.Logf("v: %T %v param: %T %v err: %T %v", v, v, param, param, err, err)
-		if param == 3 {
+		cur = atomic.LoadUint64(&param)
+		t.Logf("v: %T %v param: %T %v err: %T %v", v, v, cur, cur, err, err)
+
+		if cur == 3 {
 			if err == nil {
 				t.Fatalf("unexpected nil error %v", err)
 			}
@@ -80,10 +86,10 @@ func TestTickReload(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error %v", err)
 			}
-			if v.(int) != param {
-				t.Fatalf("unexpected value %v vs %v", v, param)
+			if v.(uint64) != cur {
+				t.Fatalf("unexpected value %v vs %v", v, cur)
 			}
-			if param == 4 {
+			if cur == 4 {
 				break
 			}
 		}
